@@ -68,29 +68,31 @@ Section RazneFunkcije.
   Context {A B C : Type}.
 
   Definition vaja1_1 : A * B -> B * A :=
-    fun (u : A * B) => (snd u, fst u).
+    fun (p : A * B) => (snd p, fst p).
                                   
-  Definition vaja1_2 : (A * B) * C -> A * (B * C).
-  Admitted.
+  Definition vaja1_2 : (A * B) * C -> A * (B * C):=
+    fun(p :(A * B) * C) => (fst (fst p), (snd (fst p), snd p)).
 
-  Definition vaja1_3 : A -> (B -> A).
-  Admitted.
+  Definition vaja1_3 : A -> (B -> A):=
+    fun (a: A) => (fun (b : B) => a ).
 
   
-  Definition vaja1_4 : (A -> B -> C) -> (A -> B) -> (A -> C).
-  Admitted.
+  Definition vaja1_4 : (A -> B -> C) -> (A -> B) -> (A -> C):=
+    fun (f : (A -> B -> C)) => (fun( h : A -> B) => (fun a:A => f a (h a))).
 
-  Definition vaja1_5 : (A * B -> C) -> (A -> (B -> C)).
-  Admitted.
+  Definition vaja1_5 : (A * B -> C) -> (A -> (B -> C)):=
+    fun (f:(A * B -> C)) => (fun (a:A) => (fun (b:B) => f(a,b))).
   
-  Definition vaja1_6 : (A -> (B -> C)) -> (A * B -> C).
-  Admitted.
+  Definition vaja1_6 : (A -> (B -> C)) -> (A * B -> C):=
+    fun(f : A -> (B -> C)) => (fun p : A * B => (f (fst p) (snd p))).
 
-  Definition vaja1_7 : unit * A -> A.
-  Admitted.
+  Definition vaja1_7 : unit * A -> A:=
+    fun (a:(unit * A)) => (snd a).
 
-  Definition vaja1_8 : A -> unit * A.
-  Admitted.
+  Definition vaja1_8 : A -> unit * A:=
+    fun(a : A) => (tt, a).
+
+Print vaja1_1.
 
 End RazneFunkcije.
 
@@ -125,17 +127,40 @@ Section Izomorfizmi1.
 
   Lemma vaja2_1 : A * B <~> B * A.
   Proof.
-    admit.
+    (** unfold iso.**)
+    exists vaja1_1, vaja1_1.
+    (** unfold vaja1_1.
+    simpl.**)
+    tauto.    
   Qed.
 
   Lemma vaja2_2 : (A * B) * C <~> A * (B * C).
   Proof.
-    admit.
+    unfold iso.
+    exists 
+       (fun f: (A * B * C) => (fst (fst f),(snd (fst f), snd f))),
+       (fun g: (A * (B * C)) => (fst g, fst (snd g), snd (snd g))).
+    split ; tauto.
+    (**-intro.
+     tauto.
+    -intro.
+     tauto.**)
   Qed.
 
   Lemma vaja2_3 : unit * A <~> A.
   Proof.
-    admit.
+    unfold iso.
+    exists 
+       (fun p: unit * A => snd p), 
+       (fun a: A => (tt, a)).
+    split.
+      -intros [[] a]. (**[u a] ali intro x.
+         destruct x.**)
+         (**simpl.
+         destruct u. če mamo intros zgoraj sicer rabis**)
+         reflexivity.
+      -intro a.
+         reflexivity.
   Qed.
 
   (** Pravimo, da sta funkciji [f g : X -> Y] _enaki po točkah_, če velja [forall x : X, f
@@ -153,7 +178,17 @@ Section Izomorfizmi1.
 
   Lemma vaja2_5 (F : funext) : (unit -> A) <~> A.
   Proof.
-    admit.
+    unfold iso.
+    exists
+      (fun (h : unit -> A) => h tt),
+      (**(fun (a : A) => (fun (x : unit) => a)).**)
+      (fun (a : A) (_ : unit) => a).
+    split.
+    - intro h.
+      apply F.
+      intros []. (**nobenih novih stvari ne bomo predpostavili**)
+      reflexivity.
+    - tauto.
   Qed.
 
   Lemma vaja2_6 (F : funext) : (A -> unit) <~> unit.
@@ -223,11 +258,38 @@ Section FunkcijeVsote.
 
   (* S stavkom match obravnavmo element, ki je vsota tipov. *)
 
-  Definition vaja3_2 : A + B -> B + A.
-  Admitted.
+  Definition vaja3_2 : A + B -> B + A:=
+     fun u : A + B => 
+        match u with
+          | inl x => inr x
+          | inr y => inl y
+        end.
 
-  Definition vaja3_3 : (A + B) * C -> A * C + B * C.
-  Admitted.
+  Definition vaja3_3 : (A + B) * C -> A * C + B * C:=
+    fun p : (A +B) * C =>
+      match fst p with
+        | inl x => inl (x, snd p)
+        | inr y => inr (y, snd p)
+      end.
+
+  Definition vaja3_3a : (A + B) * C -> A * C + B * C.
+   Proof.
+     intros [[a|b] c].
+     -left.
+       split.
+       exact a.
+       exact c.
+     -right.
+       exact (b, c).
+   Defined.
+
+
+
+      
+  (**Proof
+   tauto.
+  Defined.
+  Print vaja3_3.**)
   
   Definition vaja3_4 : A * C + B * C -> (A + B) * C.
   Admitted.
